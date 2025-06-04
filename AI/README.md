@@ -5,3 +5,4 @@
 靴の存在時間を平均
 
 matsumoto
+hashimoto
