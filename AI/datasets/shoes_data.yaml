@@ -1,0 +1,11 @@
+# dataset path
+path: shoes_dataset
+
+# train, val, test images
+train: images/train
+val: images/val
+test:images/test
+
+# number of classes (shoes only)
+nc: 1
+names: ['shoes']
