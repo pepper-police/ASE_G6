@@ -1,11 +1,8 @@
-# dataset path
-path: shoes_dataset
+path: ./datasets/shoes_dataset
 
-# train, val, test images
-train: images/train
-val: images/val
-test:images/test
+train: train/images
+val: valid/images
+test: test/images
 
-# number of classes (shoes only)
 nc: 1
 names: ['shoes']
