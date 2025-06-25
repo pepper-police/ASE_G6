@@ -1,4 +1,4 @@
-path: ./datasets/shoes_dataset
+path: ./datasets/shoes_dataset_01
 
 train: train/images
 val: valid/images
