@@ -1,16 +1,12 @@
 from ultralytics import YOLO
+import time
 
-# Load a pretrained YOLO11n model
-model = YOLO("best_models/0624.pt")
+model = YOLO("./best_models/0626.pt") ## custom model
+## src_dir に動画か連続した画像を配置しておく
+src_dir = "./source"
+res_dir = "./result"
 
-# Define path to the image dir
-source = "images"
+results = model.track(source=src_dir, persist=True)
 
-# Run inference on the source
-results = model(source)  # list of Results objects
-
-for i, result in enumerate(results):
-    result.save(filename=f"images/prediction_result_{i}.jpg")
-    print(f"結果が prediction_result_{i}.jpg に保存されました。")
-
-print("すべての予測結果が画像として保存されました。")
+for i, frame_result in enumerate(results):
+    frame_result.save(filename=f"{res_dir}/result_{i}.jpg")
