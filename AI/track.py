@@ -1,12 +1,9 @@
-## source ディレクトリの latest.jpg について処理
-## 処理済みのデータは archive ディレクトリへ移動
+# ストリームで送られるデータを処理
 from ultralytics import YOLO
 import imagezmq
-import os
-import time
 import datetime
 
-model_path = './best_models/0626.pt'
+model_path = './best_models/0704.pt'
 tracker_yaml = './custom_tracker.yaml'
 
 # create hub
@@ -26,9 +23,8 @@ try:
     while True:
         # receive frame
         rpi_name, frame = image_hub.recv_image()
-        print('receive image')
         # YOLO
-        results = model.track(source=frame, persist=True)
+        results = model.track(source=frame, persist=True, verbose=False, conf=0.5)
         res = set()
         if results[0].boxes.id is not None:
             results[0].save(filename=f"latest.jpg")
@@ -62,6 +58,5 @@ try:
             del tracked_objects[obj_id]
 
         image_hub.send_reply(b'OK')
-        print('send OK')
 except KeyboardInterrupt:
     print('\nKeyboard Interrupt')
