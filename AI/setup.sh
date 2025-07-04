@@ -3,7 +3,7 @@
 set -e
 echo "setup YOLO env"
 sudo apt update
-sudo apt install python3 python3-venv pip3 -y
+sudo apt install libgl1 python3 python3-venv python3-pip -y
 
 # venvの作成
 if [ ! -d "venv" ]; then
