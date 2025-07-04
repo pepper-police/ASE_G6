@@ -9,9 +9,12 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-while (cap.isOpened()):
-    ret, frame = cap.read()
-    if ret == True:
-        reply = sender.send_image('test', frame)
-        time.sleep(1)
-        print(reply.decode())
+try:
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+        if ret == True:
+            reply = sender.send_image('test', frame)
+            time.sleep(1)
+            print(reply.decode())
+except KeyboardInterrupt:
+    print('\nKeyboard Interrupt')
