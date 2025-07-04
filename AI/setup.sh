@@ -19,6 +19,6 @@ source venv/bin/activate
 
 # ultralyticsのインストール
 echo "Installing ultralytics..."
-pip install ultralytics
+pip install ultralytics opencv-python imagezmq lap
 
 echo 'Done'
