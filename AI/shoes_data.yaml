@@ -1,8 +1,8 @@
-path: ./datasets/shoes_dataset_04
+path: ./datasets/shoes_dataset_05
 
 train: train/images
 val: valid/images
 test: test/images
 
-nc: 1
-names: ['shoes']
+nc: 2
+names: ['shoes', 'tag']
