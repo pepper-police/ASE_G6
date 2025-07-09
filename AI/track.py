@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import imagezmq
 import datetime
 
-model_path = './best_models/0704.pt'
+model_path = './best_models/0709.pt'
 tracker_yaml = './custom_tracker.yaml'
 
 # create hub
