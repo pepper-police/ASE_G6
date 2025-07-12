@@ -1,5 +1,6 @@
 # ストリームで送られるデータを処理
 from ultralytics import YOLO
+import zmq
 import imagezmq
 import datetime
 import json
@@ -21,8 +22,13 @@ tracking_data = {}
 print('Start Tracking... (C-c to exit)')
 try:
     while True:
-        # receive frame
-        lab_name, frame = image_hub.recv_image()
+        # receive frame (polling)
+        if image_hub.zmq_socket.poll(1000): # 1000 milliseconds
+            lab_name, frame = image_hub.recv_image()
+            print(f"receive frame from {lab_name}")
+        else:
+            continue
+
         current_time = datetime.datetime.now()
 
         # get the YOLO model instance and tracking data for the current lab
@@ -76,6 +82,7 @@ try:
             json.dump(output_json, f, indent=4)
         # rename temporary file
         os.rename(f"{lab_name}.tmp", f"{lab_name}.json")
+        print(f"create {lab_name}.json")
 
         image_hub.send_reply(b'OK')
 except KeyboardInterrupt:
