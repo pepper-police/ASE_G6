@@ -14,7 +14,7 @@ try:
         ret, frame = cap.read()
         if ret == True:
             reply = sender.send_image('test', frame)
-            time.sleep(1)
             print(reply.decode())
+            time.sleep(1)
 except KeyboardInterrupt:
     print('\nKeyboard Interrupt')

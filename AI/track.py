@@ -42,10 +42,10 @@ try:
 
         # tracking
         results = model.track(source=frame, persist=True, verbose=False, conf=0.5)
+        results[0].save(filename=f"{lab_name}_latest.jpg") # debug image
 
         detected_ids = set()
         if results[0].boxes.id is not None:
-            results[0].save(filename=f"{lab_name}_latest.jpg") # debug image
             detected_ids = set(results[0].boxes.id.int().cpu().tolist())
 
         # update the last seen time for detected objects
@@ -81,7 +81,7 @@ try:
         with open(f"{lab_name}.tmp", 'w') as f:
             json.dump(output_json, f, indent=4)
         # rename temporary file
-        os.rename(f"{lab_name}.tmp", f"{lab_name}.json")
+        os.replace(f"{lab_name}.tmp", f"{lab_name}.json")
         print(f"create {lab_name}.json")
 
         image_hub.send_reply(b'OK')
