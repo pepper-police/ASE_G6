@@ -8,6 +8,7 @@ import os
 
 model_path = './best_models/0709.pt'
 tracker_yaml = './custom_tracker.yaml'
+json_path = '../Web/'
 disappear_timeout = datetime.timedelta(minutes=1)
 min_duration = datetime.timedelta(minutes=1)
 
@@ -42,7 +43,7 @@ try:
 
         # tracking
         results = model.track(source=frame, persist=True, verbose=False, conf=0.5)
-        results[0].save(filename=f"{lab_name}_latest.jpg") # debug image
+        results[0].save(filename=f"../Web/debug/{lab_name}_latest.jpg") # debug image
 
         # create detected objects list
         detected_objects = []
@@ -116,7 +117,7 @@ try:
         with open(f"{lab_name}.tmp", 'w') as f:
             json.dump(output_json, f, indent=4)
         # rename temporary file
-        os.replace(f"{lab_name}.tmp", f"{lab_name}.json")
+        os.replace(f"{lab_name}.tmp", f"{json_path}{lab_name}.json")
         print(f"create {lab_name}.json")
 
         image_hub.send_reply(b'OK')
