@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # /data フォルダ内のJSONファイル名一覧をJSON形式で返すCGIスクリプト
 import os
 import json
