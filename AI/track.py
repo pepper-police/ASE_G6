@@ -78,20 +78,20 @@ try:
                 if closest_id is not None:
                     tagged_shoes.add(closest_id)
 
-        # track only untagged shoes
-        detected_ids = set()
-        for obj in shoes_list:
-            obj_id = obj['id']
-            if obj_id not in tagged_shoes:
-                detected_ids.add(obj_id)
-                # update the last seen time for detected objects
-                if obj_id not in tracked_objects:
-                    tracked_objects[obj_id] = {
-                        'first': current_time,
-                        'last': current_time
-                    }
-                else:
-                    tracked_objects[obj_id]['last'] = current_time
+            # track only untagged shoes
+            detected_ids = set()
+            for obj in shoes_list:
+                obj_id = obj['id']
+                if obj_id not in tagged_shoes:
+                    detected_ids.add(obj_id)
+                    # update the last seen time for detected objects
+                    if obj_id not in tracked_objects:
+                        tracked_objects[obj_id] = {
+                            'first': current_time,
+                            'last': current_time
+                        }
+                    else:
+                        tracked_objects[obj_id]['last'] = current_time
 
         # create json log
         json_log = []
