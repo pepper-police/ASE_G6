@@ -7,18 +7,20 @@
 </head>
 <body>
   <h1>研究室来場者数</h1>
+  <!-- 研究室ごとの来場者情報を表示するコンテナ-->
   <div id="lab-container"></div>
 
   <script>
+    // lab-container 要素の参照を取得
     const container = document.getElementById("lab-container");
-
+    // 現状では/cgi-bin/make_list.pyからJSONファイル名の一覧を取得
     async function fetchLabList() {
-      const res = await fetch("/cgi-bin/make_list.py");
+      const res = await fetch("/make_list.py");
       return await res.json();
     }
 
     async function fetchLabData(filename) {
-      const res = await fetch(`/data/${filename}`);
+      const res = await fetch(`/${filename}`);
       return await res.json();
     }
 
