@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>研究室来場者数</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>研究室来場者数</h1>
+  <div id="lab-container"></div>
+
+  <script>
+    const container = document.getElementById("lab-container");
+
+    async function fetchLabList() {
+      const res = await fetch("/cgi-bin/make_list.py");
+      return await res.json();
+    }
+
+    async function fetchLabData(filename) {
+      const res = await fetch(`/data/${filename}`);
+      return await res.json();
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function diffMinutes(startStr, endStr) {
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      return Math.round((end - start) / 60000);
+    }
+
+    function nowMinusMinutes(startStr) {
+      const start = new Date(startStr);
+      const now = new Date();
+      return Math.round((now - start) / 60000);
+    }
+
+    async function updateLabs() {
+      try {
+        const fileList = await fetchLabList();
+        container.innerHTML = "";
+
+        for (const file of fileList) {
+          const labData = await fetchLabData(file);
+          const name = labData.lab_name || file.replace(".json", "");
+          const data = labData.data || [];
+
+          const inRoom = data.filter(d => !d.end);
+          const exited = data.filter(d => d.end);
+          const inRoomCount = inRoom.length;
+
+          const card = document.createElement("div");
+          card.className = "lab-card";
+
+          let innerHTML = `
+            <h2>${capitalize(name)}-lab</h2>
+            <p>来場者数：${inRoomCount}人</p>
+          `;
+
+          if (exited.length >= 10) {
+            const durations = exited.map(d => diffMinutes(d.start, d.end));
+            const avgStay = Math.round(durations.reduce((a, b) => a + b) / durations.length);
+
+            const maxNowStay = inRoom.map(d => nowMinusMinutes(d.start));
+            const maxStayNow = maxNowStay.length > 0 ? Math.max(...maxNowStay) : null;
+
+            let prediction = "";
+            if (maxStayNow !== null) {
+              const eta = avgStay - maxStayNow;
+              prediction = `空き予想まで：あと約 ${Math.max(eta, 0)} 分`;
+            }
+
+            innerHTML += `
+              <p>平均滞在時間：${avgStay}分</p>
+              <p>${prediction}</p>
+            `;
+          } else {
+            innerHTML += `<p style="color: gray;">※滞在データが十分に集まっていません</p>`;
+          }
+
+          card.innerHTML = innerHTML;
+          container.appendChild(card);
+        }
+      } catch(e) {
+        console.error("更新時エラー:", e);
+      }
+    }
+
+    updateLabs();
+    setInterval(updateLabs, 60000);
+  </script>
+</body>
+</html>
