@@ -3,17 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <title>研究室来場者数</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+      padding: 2em;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+
+    /* 凡例のスタイル */
+    #legend {
+      text-align: center;
+      margin-bottom: 1.5em;
+    }
+
+    .legend-item {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 0.4em 0.8em;
+      border-radius: 6px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .status-low {
+      background-color: #d4edda; /* 緑：空いている */
+      border: 1px solid #28a745;
+    }
+
+    .status-medium {
+      background-color: #fff3cd; /* 黄：普通 */
+      border: 1px solid #ffc107;
+    }
+
+    .status-high {
+      background-color: #f8d7da; /* 赤：混んでいる */
+      border: 1px solid #dc3545;
+    }
+
+    .lab-card {
+      border: 1px solid #ccc;
+      padding: 1em;
+      margin: 1em auto;
+      border-radius: 8px;
+      max-width: 500px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
   <h1>研究室来場者数</h1>
-  <!-- 研究室ごとの来場者情報を表示するコンテナ-->
+
+  <!-- 色の意味の説明 -->
+  <div id="legend">
+    <span class="legend-item status-low">空いている（緑）</span>
+    <span class="legend-item status-medium">普通（黄）</span>
+    <span class="legend-item status-high">混んでいる（赤）</span>
+  </div>
+
+  <!-- 研究室の情報表示コンテナ -->
   <div id="lab-container"></div>
 
   <script>
-    // lab-container 要素の参照を取得
     const container = document.getElementById("lab-container");
-    // 現状では/cgi-bin/make_list.pyからJSONファイル名の一覧を取得
+
     async function fetchLabList() {
       const res = await fetch("/make_list.py");
       return await res.json();
@@ -57,12 +115,21 @@
           const card = document.createElement("div");
           card.className = "lab-card";
 
+          // 人数に応じて背景色を決定
+          if (inRoomCount < 5) {
+            card.classList.add("status-low");
+          } else if (inRoomCount <= 10) {
+            card.classList.add("status-medium");
+          } else {
+            card.classList.add("status-high");
+          }
+
           let innerHTML = `
-            <h2>${capitalize(name)}-lab</h2>
-            <p>来場者数：${inRoomCount}人</p>
+            <h2>${capitalize(name)}</h2>
+            <p>滞在者数：${inRoomCount}人</p>
           `;
 
-          if (exited.length >= 10) {
+          if (exited.length >= 1) {
             const durations = exited.map(d => diffMinutes(d.start, d.end));
             const avgStay = Math.round(durations.reduce((a, b) => a + b) / durations.length);
 
@@ -79,20 +146,18 @@
               <p>平均滞在時間：${avgStay}分</p>
               <p>${prediction}</p>
             `;
-          } else {
-            innerHTML += `<p style="color: gray;">※滞在データが十分に集まっていません</p>`;
           }
 
           card.innerHTML = innerHTML;
           container.appendChild(card);
         }
-      } catch(e) {
+      } catch (e) {
         console.error("更新時エラー:", e);
       }
     }
 
     updateLabs();
-    setInterval(updateLabs, 60000);
+    setInterval(updateLabs, 60000); // 1分ごとに更新
   </script>
 </body>
 </html>
