@@ -1,40 +1,46 @@
 body {
     font-family: sans-serif;
     background-color: #f5f5f5;
-    margin: 0;
-    padding: 20px;
-}
-
-h1 {
+    padding: 2em;
+  }
+  
+  h1 {
     text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-}
-
-#lab-container {
-    display: flex;
-    flex-direction: column; /* 縦方向に並べる */
-    gap: 1em; /* 研究室カード間の余白 */
-    max-width: 400px; /* 幅の調整 */
-    margin: 0 auto; /* 中央寄せ */
-}
-
-.lab-card {
+    margin-bottom: 2em;
+  }
+  
+  /* ラボカードの基本デザイン */
+  .lab-card {
     border: 1px solid #ccc;
-    border-radius: 10px;
     padding: 1em;
-    background-color: #f9f9f9;
-}  
+    margin: 1em auto;
+    border-radius: 8px;
+    max-width: 500px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
 
+  /* 滞在者数が少ない（空いている） → 緑 */
+.status-low {
+    background-color: #d4edda;
+    border-color: #28a745;
+}  
+  /* 滞在者数が中程度（普通） → 黄色 */
+.status-medium {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
+
+  /* 滞在者数が多い（混雑） → 赤 */
+.status-high {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+  /* 見やすさ向上のためのテキスト色調整（必要に応じて） */
 .lab-card h2 {
     margin-top: 0;
-    color: #007acc;
-}
-
+}  
 .lab-card p {
-    margin: 0.4em 0;
-}
-
-.lab-card p:last-child {
-    font-weight: bold;
-}
+    margin: 0.5em 0;
+}  
