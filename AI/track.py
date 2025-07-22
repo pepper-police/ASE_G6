@@ -6,7 +6,7 @@ import datetime
 import json
 import os
 
-model_path = './best_models/0709.pt'
+model_path = './best_models/0722.pt'
 tracker_yaml = './custom_tracker.yaml'
 json_path = '../Web/'
 disappear_timeout = datetime.timedelta(minutes=1)
