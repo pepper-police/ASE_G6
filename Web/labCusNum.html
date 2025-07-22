@@ -15,7 +15,6 @@
       margin-bottom: 1em;
     }
 
-    /* 凡例のスタイル */
     #legend {
       text-align: center;
       margin-bottom: 1.5em;
@@ -31,17 +30,17 @@
     }
 
     .status-low {
-      background-color: #d4edda; /* 緑：空いている */
+      background-color: #d4edda;
       border: 1px solid #28a745;
     }
 
     .status-medium {
-      background-color: #fff3cd; /* 黄：普通 */
+      background-color: #fff3cd;
       border: 1px solid #ffc107;
     }
 
     .status-high {
-      background-color: #f8d7da; /* 赤：混んでいる */
+      background-color: #f8d7da;
       border: 1px solid #dc3545;
     }
 
@@ -59,76 +58,134 @@
 <body>
   <h1>研究室来場者数</h1>
 
-  <!-- 色の意味の説明 -->
   <div id="legend">
     <span class="legend-item status-low">空いている（緑）</span>
-    <span class="legend-item status-medium">普通（黄）</span>
-    <span class="legend-item status-high">混んでいる（赤）</span>
+    <span class="legend-item status-medium">やや混雑している（黄）</span>
+    <span class="legend-item status-high">混雑している（赤）</span>
   </div>
 
-  <!-- 研究室の情報表示コンテナ -->
   <div id="lab-container"></div>
 
   <script>
     const container = document.getElementById("lab-container");
 
+    // 各研究室の最大収容人数（必要に応じて追加）
+    const maxCapacities = {
+      harada: 15,
+    };
+
+    // 研究室リストを取得する関数
     async function fetchLabList() {
       const res = await fetch("/make_list.py");
       return await res.json();
     }
 
+    // 個別の研究室データ(jsonファイル)を取得する関数
     async function fetchLabData(filename) {
       const res = await fetch(`/${filename}`);
       return await res.json();
     }
 
+    // 最初の文字を大文字に変換するユーティリティ関数
     function capitalize(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
+    // 2つの日付文字列の差分を分単位で計算する関数
     function diffMinutes(startStr, endStr) {
       const start = new Date(startStr);
       const end = new Date(endStr);
       return Math.round((end - start) / 60000);
     }
 
+    // 開始時間から現在までの経過時間を分単位で計算する関数
     function nowMinusMinutes(startStr) {
       const start = new Date(startStr);
       const now = new Date();
       return Math.round((now - start) / 60000);
     }
 
+    // 研究室データを取得して画面表示を更新する
     async function updateLabs() {
       try {
+        // 研究室一覧を取得
         const fileList = await fetchLabList();
-        container.innerHTML = "";
+        container.innerHTML = ""; // コンテナ初期化
 
         for (const file of fileList) {
+          // 各研究室のデータを取得
           const labData = await fetchLabData(file);
-          const name = labData.lab_name || file.replace(".json", "");
+          const name = labData.lab_name || file.replace(".json", ""); // 研究室名取得
           const data = labData.data || [];
 
+          // まだ退出していない滞在者と退出済みの滞在者に分ける
           const inRoom = data.filter(d => !d.end);
           const exited = data.filter(d => d.end);
           const inRoomCount = inRoom.length;
 
+          // 最大収容人数（未登録の場合は15人）
+          const maxCapacity = maxCapacities[name] || 15;
+          // 現在の収容率
+          const occupancyRate = inRoomCount / maxCapacity;
+
+          // 研究室カード作成
           const card = document.createElement("div");
           card.className = "lab-card";
 
-          // 人数に応じて背景色を決定
-          if (inRoomCount < 5) {
-            card.classList.add("status-low");
-          } else if (inRoomCount <= 10) {
-            card.classList.add("status-medium");
+          // 収容率に応じて背景色を変更
+          if (occupancyRate < 0.4) {
+            card.classList.add("status-low");    // 緑（空いている）
+          } else if (occupancyRate < 0.75) {
+            card.classList.add("status-medium"); // 黄（やや混雑）
           } else {
-            card.classList.add("status-high");
+            card.classList.add("status-high");   // 赤（混雑）
           }
 
+          // 表示内容初期化
           let innerHTML = `
             <h2>${capitalize(name)}</h2>
             <p>滞在者数：${inRoomCount}人</p>
           `;
 
+          // 混雑レベルの閾値設定
+          const thresholds = {
+            low: Math.ceil(0.4 * maxCapacity),
+            medium: Math.ceil(0.75 * maxCapacity),
+          };
+
+          // 混雑緩和（次の下のレベル）の閾値を決定
+          let nextLowerThreshold = null;
+          if (occupancyRate >= 0.75) {
+            // 今が混雑（赤）なら、緩和先はやや混雑（黄）レベル
+            nextLowerThreshold = thresholds.medium;
+          } else if (occupancyRate >= 0.4) {
+            // 今がやや混雑（黄）なら、緩和先は空いている（緑）レベル
+            nextLowerThreshold = thresholds.low;
+          }
+
+          // 混雑緩和までの予想時間を計算・表示
+          if (nextLowerThreshold !== null && inRoomCount > nextLowerThreshold) {
+            const peopleToLeave = inRoomCount - nextLowerThreshold;  // 何人退出すれば緩和か
+
+            // 過去退出者の平均滞在時間（分）
+            const durations = exited.map(d => diffMinutes(d.start, d.end));
+            const avgStay = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b) / durations.length) : 0;
+
+            // 今滞在中の人の滞在時間リスト（長い順）
+            const staysNow = inRoom.map(d => nowMinusMinutes(d.start));
+            staysNow.sort((a, b) => b - a);
+
+            // 緩和までの予想時間（退出が必要な人数分の残り滞在時間を合計）
+            let totalETA = 0;
+            for (let i = 0; i < peopleToLeave && i < staysNow.length; i++) {
+              const remain = avgStay - staysNow[i];
+              totalETA += Math.max(remain, 1);  // 最低1分はかかる想定
+            }
+
+            innerHTML += `<p>混雑緩和までの予想時間：約 ${totalETA} 分</p>`;
+          }
+
+          // 過去の平均滞在時間と空き予想時間も表示
           if (exited.length >= 1) {
             const durations = exited.map(d => diffMinutes(d.start, d.end));
             const avgStay = Math.round(durations.reduce((a, b) => a + b) / durations.length);
@@ -148,6 +205,7 @@
             `;
           }
 
+          // カードに内容をセットして画面に追加
           card.innerHTML = innerHTML;
           container.appendChild(card);
         }
@@ -156,8 +214,9 @@
       }
     }
 
+    // 初回更新実行と1分ごとの自動更新
     updateLabs();
-    setInterval(updateLabs, 60000); // 1分ごとに更新
+    setInterval(updateLabs, 60000);
   </script>
 </body>
 </html>
