@@ -3,8 +3,12 @@ const container = document.getElementById("lab-container");
 
 // 各研究室の最大収容人数
 const maxCapacities = {
-  harada: 3,
+  harada_lab: 3,
 };
+// 研究室のJOSNリスト
+const fileList = [
+  "harada_lab.json"
+];
 
 // --- API通信関数 ---
 
@@ -36,11 +40,6 @@ function getMinutesSince(startStr) {
 // 研究室データを取得して画面表示を更新するメイン関数
 async function updateLabs() {
   try {
-    // 表示したい研究室のJSONファイルをここで指定
-    const fileList = [
-        "harada_lab.json",
-    ];
-
     container.innerHTML = ""; // 表示コンテナを初期化
 
     for (const file of fileList) {
@@ -54,7 +53,7 @@ async function updateLabs() {
       const inRoomCount = inRoom.length;
 
       // 2. 混雑レベルを計算
-      const maxCapacity = maxCapacities[name] || 15;
+      const maxCapacity = maxCapacities[name];
       const occupancyRate = inRoomCount / maxCapacity;
       let statusClass = "status-low"; // デフォルトは「空いている」
       if (occupancyRate >= 0.75) {
