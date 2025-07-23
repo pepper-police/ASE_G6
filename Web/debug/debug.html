@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang='ja'>
+<head> 
+	<meta charset="UTF-8" http-equiv="refresh" content="10">
+	<title>研究室靴画像</title>
+</head>
+<body>
+	<div id="image-list"></div>
+<script>
+	async function fetchLabList() {
+      const res = await fetch('../make_list.py'); // Webディレクトリ内CGIスクリプト
+      if (!res.ok) throw new Error('Failed to load lab list');
+      return await res.json();
+    }
+
+    async function showImages() {
+      const container = document.getElementById('image-list');
+      try {
+        const fileList = await fetchLabList();
+
+        if (fileList.length === 0) {
+          container.textContent = '画像データが見つかりません。';
+          return;
+        }
+
+        fileList.forEach(filename => {
+          // ファイル名からlab名を取得（拡張子除去）
+          const labName = filename.replace('.json', '');
+
+          // 画像のパス debug/{labName}_latest.jpg
+          const imgPath = `./${labName}_latest.jpg?${Date.now()}`;
+
+          // 画像表示用のdivを作成
+          const div = document.createElement('div');
+          div.className = 'image-container';
+
+          const title = document.createElement('h2');
+          title.textContent = labName;
+
+          const img = document.createElement('img');
+          img.src = imgPath;
+          img.alt = `${labName}の最新画像`;
+
+          div.appendChild(title);
+          div.appendChild(img);
+
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+        container.textContent = '画像の取得に失敗しました。';
+      }
+    }
+
+    // ページロード時に画像を表示
+    showImages();
+    
+    
+</script>
+</body>
+</html>
