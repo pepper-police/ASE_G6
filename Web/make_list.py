@@ -6,6 +6,7 @@ import traceback
 
 # HTTPレスポンスのヘッダーを出力（Content-TypeはJSON）
 print("Content-Type: application/json\n")
+print() 
 
 try:
     # このスクリプトが置かれているディレクトリの絶対パスを取得
