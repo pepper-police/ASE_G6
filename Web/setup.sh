@@ -1,55 +1,62 @@
 #!/bin/bash
 
-# === Apache2 のインストール ===
-echo "Apache2 をインストールします..."
+set -e
+
+echo "=== Apache2 インストール ==="
 sudo apt update
 sudo apt install -y apache2
 
-# === CGI モジュールの有効化 ===
-echo "CGI モジュールを有効化します..."
+echo "=== Python3 と CGI有効化 ==="
+sudo apt install -y python3 python3-pip
 sudo a2enmod cgi
+sudo systemctl restart apache2
 
-# === ドキュメントルートを /home/ubuntu/web に変更 ===
-WEB_DIR="/home/ubuntu/web"
-if [ ! -d "$WEB_DIR" ]; then
-    echo "Web ディレクトリが存在しません。作成します: $WEB_DIR"
-    mkdir -p "$WEB_DIR"
-fi
+echo "=== ディレクトリ構成作成 ==="
+WEB_DIR="/var/www/html/lab_visitors"
+sudo mkdir -p "$WEB_DIR/images"
+sudo mkdir -p "$WEB_DIR/cgi-bin"
 
-# === サンプル index.html を作成 ===
-echo "<h1>Apache is working!</h1>" > "$WEB_DIR/index.html"
+echo "=== HTML/JS/CSS 配置 ==="
+# 例: 現在のディレクトリに index.html, script.js, images/ があるとする
+sudo cp index.html "$WEB_DIR/"
+sudo cp script.js "$WEB_DIR/"
+sudo cp -r images "$WEB_DIR/"
 
-# === Apache の設定ファイルを作成 ===
-VHOST_CONF="/etc/apache2/sites-available/web.conf"
-sudo tee "$VHOST_CONF" > /dev/null <<EOF
+echo "=== CGIスクリプト配置 ==="
+# make_list.py は JSON を返すスクリプト
+sudo cp make_list.py "$WEB_DIR/cgi-bin/"
+sudo chmod 755 "$WEB_DIR/cgi-bin/make_list.py"
+
+echo "=== Apache設定変更（lab_visitors用） ==="
+
+# 設定ファイル作成（lab_visitors.conf）
+CONF_PATH="/etc/apache2/sites-available/lab_visitors.conf"
+sudo tee "$CONF_PATH" > /dev/null <<EOF
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot $WEB_DIR
 
     <Directory "$WEB_DIR">
-        Options +ExecCGI
-        AddHandler cgi-script .cgi .py
-        AllowOverride All
+        Options Indexes FollowSymLinks
+        AllowOverride None
         Require all granted
     </Directory>
 
-    ErrorLog \${APACHE_LOG_DIR}/web_error.log
-    CustomLog \${APACHE_LOG_DIR}/web_access.log combined
+    ScriptAlias /make_list.py "$WEB_DIR/cgi-bin/make_list.py"
+    <Directory "$WEB_DIR/cgi-bin">
+        Options +ExecCGI
+        AddHandler cgi-script .py
+        Require all granted
+    </Directory>
+
+    ErrorLog \${APACHE_LOG_DIR}/lab_visitors_error.log
+    CustomLog \${APACHE_LOG_DIR}/lab_visitors_access.log combined
 </VirtualHost>
 EOF
 
-# === 既存の設定を無効化し、新しい設定を有効化 ===
-echo "設定を有効化します..."
+echo "=== Apache設定有効化と再起動 ==="
 sudo a2dissite 000-default.conf
-sudo a2ensite web.conf
+sudo a2ensite lab_visitors.conf
 sudo systemctl reload apache2
 
-# === パーミッション確認 ===
-echo "Web ディレクトリに実行権限を付与します..."
-chmod -R +x "$WEB_DIR"
-
-# === Apache 再起動 ===
-echo "Apache を再起動します..."
-sudo systemctl restart apache2
-
-echo "✅ セットアップ完了！ http://[サーバーのIPアドレス] にアクセスしてください"
+echo "=== 完了！ http://<サーバーIP>/ にアクセスしてください ==="
