@@ -8,6 +8,7 @@
 ```bash
 bash setup.sh
 ```
+別ドキュメントを参考にVPNを構築
 
 ### 内容物
 * setup.sh : 環境構築用スクリプト
